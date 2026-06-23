@@ -1,0 +1,33 @@
+ID,Case,isBulgaria,isMoreno,isTrump,is_Europe,High_Instability,Paralegal_Change,Easy_Change,Easy_Change_correct,Economic_Crisis,Security_Crisis,Hydrocarbon_Windfall,Hydrocarbon_Windfall_recoded,Democratic_reversal_by_leader,Coup_against_leader,High_Inequality,Ethnic_fragmentation,Traditional_Values
+BUL,Borisov,1,0,0,1,0,1,0,1,0,0,0,0,0,0,0,0,0
+VEN,Chavez,0,0,0,0,1,1,0,0,1,0,1,1,1,0,1,1,1
+BOL,Morales,0,0,0,0,1,1,0,0,0,0,1,1,1,1,1,1,1
+ECU,Moreno,0,1,0,0,1,1,0,0,1,0,0,1,0,0,1,1,1
+ECU,Correa,0,0,0,0,1,1,0,0,0,0,1,1,1,0,1,1,1
+ECU,Gutierrez,0,0,0,0,1,1,0,0,0,0,0,1,0,0,1,1,1
+HON,Zelaya,0,0,0,0,0,1,0,0,0,0,0,0,0,1,1,0,1
+PAR,Lugo,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,1
+PER,Humala,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,1,1
+ARG,N Kirchner,0,0,0,0,0,1,0,0,1,0,0,0,0,0,1,0,1
+ARG,C Kirchner,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,1
+GUA,Colom,0,0,0,0,1,1,0,0,0,0,0,0,0,0,1,1,1
+PER,Fujimori,0,0,0,0,0,1,0,0,1,1,0,0,1,1,1,1,1
+COL,Uribe,0,0,0,0,0,1,0,0,0,1,0,0,0,0,1,1,1
+ARG,Menem,0,0,0,0,0,1,0,0,1,0,0,0,0,0,1,0,1
+PER,Garcia,0,0,0,0,0,1,0,0,1,0,0,0,0,0,1,1,1
+PER,Toledo,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,1,1
+ECU,Bucaram,0,0,0,0,0,1,0,0,0,0,0,1,0,1,1,1,1
+BRA,Collor,0,0,0,0,0,1,0,0,1,0,0,0,0,0,1,1,1
+GUA,Serrano,0,0,0,0,1,1,0,0,0,0,0,0,0,0,1,1,1
+HUN,Orban,0,0,0,1,0,0,1,1,1,0,0,0,1,0,1,0,0
+TUR,Erdogan,0,0,0,1,0,0,1,1,1,0,0,0,1,0,1,1,1
+ITA,Berlusconi,0,0,0,1,0,0,1,1,0,0,0,0,0,0,1,0,0
+SLO,Meciar,0,0,0,1,0,0,1,1,0,0,0,0,0,0,0,0,0
+SLO,Fico,0,0,0,1,0,0,1,1,0,0,0,0,0,0,0,0,0
+BUL,Borisov,0,0,0,1,0,0,1,1,0,0,0,0,0,0,0,0,0
+CZE,Babis,0,0,0,1,0,0,1,1,0,0,0,0,0,0,0,0,1
+ROM,Basescu,0,0,0,1,0,1,1,1,0,0,0,0,0,0,0,0,1
+POL,Kaczynski,0,0,0,1,0,0,1,1,0,0,0,0,0,0,1,0,1
+GRE,Papandreou,0,0,0,1,0,0,1,1,0,0,0,0,0,0,0,0,0
+GRE,Tsipras,0,0,0,1,0,0,1,1,0,0,0,0,0,0,0,0,0
+USA,Trump,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,1,1
