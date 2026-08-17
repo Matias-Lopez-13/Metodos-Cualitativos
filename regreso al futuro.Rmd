@@ -1,0 +1,60 @@
+---
+title: 'Tarea 1: Back to the future!'
+subtitle: 'Métodos Cualitativos Universidad Diego Portales'
+output:
+  pdf_document: default
+  html_document: default
+date: ""
+---
+
+
+```{r my-image-chunk, echo=FALSE, out.width="70%", fig.cap="Lorraine y Marty en Back to the future, de Robert Zemeckis. EE.UU. 1985"}
+    knitr::include_graphics("/Users/lopezmar/Documents/BTF_picture.webp")
+```
+
+Una manera de definir causalidad es usando contrafácticos. Humphreys nos recuerda que un argumento causal es sobre "algo que no ocurrió" y que esto genera un "problema fundamental."  Holland (1986) lo explica haciendonos notar que un evento que podamos considerar como un tratamiento $t$ puede haber sido la causa de un resultado $y$, para una unidad $i$. Si esto es verdad, entonces también debe ser verdad que el modo como vemos $y$ en $i$ cuando $y_{i,t=1}$ (entendiendo que $t=1$ implica presencia de $t$) es distinto a lo que observaríamos si $y_{i,t=0}$ (entendiendo que $t=0$ implica ausencia de $t$).
+
+Lo explicado arriba puede querer decir que la cantidad de $y$ es distinta en un estado y en el otro, pero también puede querer decir que la calidad de $y$ es distinta, por ejemplo, si $y$ está presente en un estado y ausente en el otro. Esto implicad una diferencia de cantidad, pues $y=1>y=0$ y de calidad, pues $y_{presente}$$\neq$$y_{ausente}$.  
+
+El efecto de $t$ en $y$ para cada $i$ se podría calcular por medio de la siguiente fórmula: $y_{i,t=1}- y_{i,t=0}$. El problema “fundamental” es que solo podemos observar uno de estos dos estados de $i$, el otro es un contrafáctico.
+
+En *Regreso al futuro* podemos observar un contrafáctico. La película retrata la historia de Marty McFly, quien regresa en el tiempo a 1955 e interviene en la cadena de eventos que llevan a su propia existencia. La película sugiere dos cadenas causales para la existencia de Marty.
+
+# Cadena Causal 1
+
+
+Abuelo Atropella George $\rightarrow$ Lorraine Cuida George 
+ $\rightarrow$ Lorraine se enamora de George $\rightarrow$
+Se besan $\rightarrow$ Marty Existe. 
+
+
+# Cadena Causal 2
+
+Abuelo Atropella Marty $\rightarrow$ Lorraine Cuida Marty 
+ $\rightarrow$ Lorraine se enamora de Marty $\rightarrow$
+Marty conspira con George $\rightarrow$ 
+Se besan $\rightarrow$ Marty Existe.  
+
+
+En el argumento de *Regreso al futuro*, cuál sería el tratamiento $t$? 
+
+La película nos permite observar algunos contrafactuales pero no otros. 
+
+En 1955, Marty guarda una foto suya con su hermana y hermano consigo, tomada en 1985. Tras interferir en los eventos de 1955, sus familiares gradualmente desaparecen de la foto.
+En el baile *Enchantment under the sea*, Marty empieza a desaparecer de la foto y también observa como su mano se vuelve translúcida. Con base en esta información y en lo que observamos en el mundo alternativo expuesto en Cadena Causal 2, es posible afirmar con certeza que Marty es hijo de (fue causado por) Lorraine y George? Expliquen su razonamiento de modo formal y con referencia al problema fundamental de la inferencia causal. Pueden usar los códigos que generaron este documento ("regreso al futuro.Rmd" en Canvas), si quieren.
+
+En la escena en el *diner*, Marty se encuentra con Goldie Wilson y le informa que en el futuro el mismo será edil de Hill Valley. A Goldie le gusta la idea, y alli mismo anuncia que pretende ser edil. Es Marty la causa del Sr. Wilson ser edil en 1985? Pudo Marty haber ejercido algun otro efecto sobre la alcaldia de Hill Valley?
+
+Con base en lo que es posible observar durante la aventura, discutan (otros) dos efectos causales que puedan ser atribuídos, con seguridad, al viaje temporal de Marty y dibujen una cadena causal.
+
+# Referencias
+
+Holland, Paul W. “Statistics and causal inference.” Journal of the American statistical Association 81.396
+(1986): 945-960.
+
+Humphreys, Macartan. “10 Things to Know About Causal Inference.” 
+\textit{EGAP Methods Guide}. Disponible en 
+\href{https://egap.org/resource/10-things-to-know-about-causal-inference/}
+{https://egap.org/resource/10-things-to-know-about-causal-inference/}
+
+
