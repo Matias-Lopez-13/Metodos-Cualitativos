@@ -9,7 +9,7 @@ date: ""
 
 
 ```{r my-image-chunk, echo=FALSE, out.width="70%", fig.cap="Lorraine y Marty en Back to the future, de Robert Zemeckis. EE.UU. 1985"}
-    knitr::include_graphics("/Users/lopezmar/Documents/BTF_picture.webp")
+    knitr::include_graphics("pon el tu camino aquí")
 ```
 
 Una manera de definir causalidad es usando contrafácticos. Humphreys nos recuerda que un argumento causal es sobre "algo que no ocurrió" y que esto genera un "problema fundamental."  Holland (1986) lo explica haciendonos notar que un evento que podamos considerar como un tratamiento $t$ puede haber sido la causa de un resultado $y$, para una unidad $i$. Si esto es verdad, entonces también debe ser verdad que el modo como vemos $y$ en $i$ cuando $y_{i,t=1}$ (entendiendo que $t=1$ implica presencia de $t$) es distinto a lo que observaríamos si $y_{i,t=0}$ (entendiendo que $t=0$ implica ausencia de $t$).
