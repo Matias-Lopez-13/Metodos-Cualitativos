@@ -1,0 +1,264 @@
+---
+title: 'Tarea 3: Método Comparado'
+subtitle: 'Métodos Cualitativos Universidad Diego Portales'
+date: ''
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(ggplot2)
+library(QCA)
+library(ggpubr)
+library(stats)
+library(tidyverse)
+
+
+```
+
+
+La Organización Mundial por la Democracia se reunirá en Ginebra para debatir el riesgo de quiebre de la democracia en EE. UU. durante el nuevo gobierno de Trump. Antes de la reunión, han contratado a una investigadora cualitativa especializada en el método comparado.
+
+La investigadora hizo notar a la OMD que, en la política comparada, hay posiciones más optimistas y otras no tanto con respecto a la salud de la democracia en EE. UU. El optimismo y el pesimismo derivan de opciones metodológicas respecto a cómo comparar a EE. UU. con otros casos y en qué variables poner atención. Para ejemplificar esos resultados "mixtos", la investigadora puso su atención en dos estudios. El primero es de 2020, de autoría de Kurt Weyland y publicado en *Perspectives on Politics*. Dicho estudio compara el caso de Trump con otros casos de líderes populistas electos democráticamente y con tendencias autoritarias. Según su análisis, los gobernantes populistas que lograron erosionar los regímenes democráticos fueron aquellos en países donde las instituciones políticas eran débiles, una condición que, argumenta, no se observa en los Estados Unidos contemporáneos.
+
+El segundo estudio es de 2021, de autoría de un postdoc en Suecia y un profe de Chile, y fue publicado en *PS: Political Science & Politics*. Los autores replicaron los datos de Weyland, sugiriendo algunas correcciones y adicionando otras variables que ofrecían conclusiones menos optimistas. Según este segundo estudio, el método usado para las comparaciones es demasiado sensible a la inclusión de nuevas variables y a la adición de casos, y no permite excluir con confianza el riesgo de quiebre democrático en EE. UU., como plantea Weyland.
+
+Le encargamos a la investigadora que realizara una serie de análisis con base en el método comparado para dar su opinión sobre este tema. Le pedimos que incluyera nuevos casos de populismo con tendencias autoritarias parecidos a Trump, como los de Bolsonaro, Milei y Bukele.
+
+Por infortunio, la investigadora ganó el premio de la lotería y decidió abandonar su trabajo. Nos pasó sus anotaciones, pero no pudimos entender el material.
+
+Por favor, ayúdanos a entender estos datos y dinos si deberíamos estar tranquilos o no con relación al futuro de la democracia en EE. UU.
+
+## Anotaciones de la investigadora
+
+Weyland (2020) nota que la democracia estadounidense pareció haber pasado la prueba de las elecciones presidenciales de 2020 y sus consecuencias. Tras cuatro años de arremetida contra las normas democráticas del país, las inclinaciones autocráticas de Donald Trump parecían haber sido controladas con éxito. Sin embargo, la probabilidad de observar un retroceso democrático en Estados Unidos sigue siendo una pregunta abierta e importante, más aún en el actual contexto de una segunda administración Trump. Encontré un segundo estudio que replica y critica el estudio de Weyland.
+
+La base de datos `Weyland2.csv` la encontré [aquí](https://github.com/Matias-Lopez-13/Metodos-Cualitativos/tree/main/data).
+
+Lo primero que notan estos críticos es que hay "confoundiness" entre el tipo de gobierno y la región. Weyland apunta a los regímenes parlamentarios como más abiertos al cambio institucional; por lo tanto, sería más fácil en ellos realizar un "sofocamiento de la democracia". El segundo paper nota una coincidencia entre este tipo de régimen y el hecho de ser un país europeo. Yo decidí chequear esto yo misma con el código de abajo.
+
+
+
+```{r, include=T}
+
+
+Weyland2 <- read.csv("https://raw.githubusercontent.com/Matias-Lopez-13/Metodos-Cualitativos/main/data/Weyland2.csv")
+
+cor.test(Weyland2$is_Europe,Weyland2$Easy_Change)
+
+
+```
+
+
+Llegué a la conclusión que ... espera, tengo que atender la puerta. Me aburre este trabajo.
+
+Regresé. Luego termino lo de arriba. Ahora voy a agregar los casos de Bolsonaro, Bukele y  Milei. 
+
+
+```{r, include=T}
+
+# inserir nuevos casos 
+
+
+
+new_cases <- data.frame(
+  ID = c("Brazil", "El Salvador", "Argentina"),
+  Case = c("Bolsonaro", "Bukele", "Milei"),
+  isBulgaria = c(0, 0, 0),
+  isMoreno = c(0, 0, 0),
+  isTrump = c(0, 0, 0),
+  is_Europe = c(0, 0, 0),
+  High_Instability = c(1, 1, 1),
+  Paralegal_Change = c(0, 0, 0),
+  Easy_Change = c(0, 0, 0),
+  Easy_Change_correct = c(0, 0, 0),
+  Economic_Crisis = c(0, 0, 1),
+  Security_Crisis = c(0, 1, 0),
+  Hydrocarbon_Windfall = c(0, 0, 0),
+  Hydrocarbon_Windfall_recoded = c(0, 0, 0),
+  Democratic_reversal_by_leader = c(0, 1, 0),
+  Coup_against_leader = c(0, 0, 0),
+  High_Inequality = c(1, 1, 1),
+  Ethnic_fragmentation = c(1, 1, 1),
+  Traditional_Values = c(1, 1, 1)
+)
+
+# juntar a datos de Weyland expandidos por López y Luna
+
+Weyland2 <- rbind(Weyland2, new_cases)
+
+
+# aquí dejame separar unos casos importantes
+common_members <- Weyland2$ID[Weyland2$Democratic_reversal_by_leader == 1]
+
+print(common_members)
+
+```
+
+
+Ahora voy a comparar estos casos usando una reducción Booleana. Yo pienso que esto es una manera distinta de aplicar el método de la similitud de Skocpol y Somers (1980). Theda Skocpol es mi ídola. Dejame explicar este método: HACER DESPUÉS, AHORA NETFLIX!
+
+
+```{r, include=T}
+
+
+# bien, a trabajar con los casos importantes como si yo fuera Theda Skocpol!
+
+subset_data <- Weyland2[Weyland2$Democratic_reversal_by_leader == 1, ]
+
+
+set_vars <- c("Democratic_reversal_by_leader", 
+              "Case",
+              "High_Instability",	
+              "Paralegal_Change",
+              "Easy_Change_correct",	"Economic_Crisis",
+              "Security_Crisis",	"Hydrocarbon_Windfall_recoded",
+              
+              "High_Inequality", "Ethnic_fragmentation","Traditional_Values")  
+
+result <- sapply(set_vars, function(var) {
+  all(subset_data[[var]] == 1)
+})
+
+# Resultado
+names(result)[result]
+
+
+```
+
+mmmm que interesante lo de arriba. Eso dice algo sobre EE.UU. porque... hay que peresa de escribir. Después lo hago.
+
+A ver, por último quiero hacer un poco de QCA como en los papers, aunque en el segundo paper ya me avisan que esta no es una técnica muy confiable. Pero quiero saber si hay una combinación de conjuntos que sugiera que EE.UU. puede llegar a entrar en ese grupo
+
+```{r, include=T, warning=FALSE}
+
+
+data2 <- Weyland2[, c("Democratic_reversal_by_leader",
+                      "High_Instability",
+                      "Paralegal_Change",
+                      "Easy_Change_correct",
+                      "Economic_Crisis",
+                      "Security_Crisis",
+                      "Hydrocarbon_Windfall_recoded",
+                      "High_Inequality", 
+                      "Ethnic_fragmentation",
+                      "Traditional_Values")]
+
+truth_table <- truthTable(data2, outcome = "Democratic_reversal_by_leader", 
+                  conditions = c("High_Instability",
+                                 "Paralegal_Change",
+                                 "Easy_Change_correct",
+                                 "Economic_Crisis",
+                                 "Security_Crisis",
+                                 "Hydrocarbon_Windfall_recoded",
+                                 "High_Inequality", 
+                                 "Ethnic_fragmentation",
+                                 "Traditional_Values"), incl.cut = 0.85, n.cut = 1)
+
+
+minimized_solution <- minimize(input = truth_table, outcome = "Democratic_reversal_by_leader")
+minimized_solution
+
+```
+Oh, que interesante
+
+
+# He aprendido algo?
+
+Sigo trabajando en estas comparaciones. El método de Skocpol y Somers (1980) sugiere una variable común a todos los casos de deterioro democrático. Pero creo que esto no me dice sí esta varible es la causa de este fenomeno, ¿o sí? No sé.
+
+
+
+
+```{r, include=T}
+
+
+# aquí uso un modelo logit para estimar probabiliddaes. Es la parte "cuanti" del estudio "mixed methods"
+
+# primero junto ambas datas
+
+
+library(lme4)
+
+modelo<-glm(Democratic_reversal_by_leader~High_Inequality, data=Weyland2, family= "binomial")
+
+summary(modelo)
+
+# aquí ploteo las probabilidades.
+
+# Predicted probabilities
+
+pred_data <- data.frame(
+  High_Inequality = c(0, 1)
+)
+
+pred_data$predicted_probability <- predict(
+  modelo,
+  newdata = pred_data,
+  type = "response"
+)
+
+# Plot
+
+ggplot(pred_data,
+       aes(x = factor(High_Inequality),
+           y = predicted_probability)) +
+ geom_point(size = 4) +
+  geom_line(aes(group = 1), linewidth = 0.8) +
+  scale_x_discrete(
+    labels = c(
+      "0" = bquote("" %notin% " país desigual"),
+      "1" = bquote("" %in% " país desigual")
+    )
+  ) +
+  scale_y_continuous(
+    limits = c(0, 0.5),
+    labels = scales::percent
+  ) +
+  labs(
+    x = NULL,
+  y = expression("Probabilidad de " * phantom(x) %in% " deterioro democrático")
+  ) +
+  theme_minimal(base_size = 13)
+
+
+```
+
+
+Decidí abandonar el QCA y trabajar con un modelo. Pareciera que la baja desigualdad determina con seguridad que un país se mantenga democrático? Ahora aprendí que la igualdad causa la estabilidad democratica? Publicaré en **Science**?
+
+
+
+# Libro de códigos 
+
+
+- **Democratic_reversal_by_leader**: 1 implica membresia en conjunto de países en que el líder populista logró revertir/sofocar la democracia, 0 implica no membresia.
+- **High_Instability**: 1 implica membresia en conjunto de países que experimentaron alta instabilidad, 0 implica no membresia.
+- **Paralegal_Change**: 1 implica membresia en conjunto de países que experimentaron cambios no amparados por la ley, 0 implica no membresia.
+- **Easy_Change_correct**: 1 implica membresia en conjunto de países con sistemas políticos que facilitan el cambio/reformas, 0 implica no membresia.
+- **Economic_Crisis**: 1 implica membresia en conjunto de países que experimentaron crisis econónimica , 0 implica no membresia.
+- **Security_Crisis**: 1 implica membresia en conjunto de países que experimentaron conflicto interno , 0 implica no membresia.
+- **Hydrocarbon_Windfall_recoded**: 1 implica membresia en conjunto de países ricos en recursos naturales como petroleo y gás, 0 implica no membresia.
+- **High_Inequality**: 1 implica membresia en conjunto de países muy desiguales, 0 implica no membresia.
+- **Ethnic_fragmentation**: 1 implica membresia en conjunto de países muy diversos etnicamente, 0 implica no membresia.
+- **Traditional_Values**: 1 implica membresia en conjunto de países con valores culturales tradicionales, 0 implica no membresia.
+
+
+# Referencias
+
+López, Matias, and Juan Pablo Luna. 2021. “Assessing the Risk of Democratic Reversal in the United States: A Reply to Kurt Weyland.” *PS: Political Science & Politics* 54(3): 421–426. [https://doi.org/10.1017/S1049096521000329](https://doi.org/10.1017/S1049096521000329)
+
+Skocpol, Theda, and Margaret Somers. 1980. “The Uses of Comparative History in Macrosocial Inquiry.” *Comparative Studies in Society and History* 22(2): 174–197. [https://doi.org/10.1017/S0010417500009282](https://doi.org/10.1017/S0010417500009282)
+
+Weyland, Kurt. 2020. “Populism’s Threat to Democracy: Comparative Lessons for the United States.” *Perspectives on Politics* 18(2): 389–406. [https://doi.org/10.1017/S1537592719003955](https://doi.org/10.1017/S1537592719003955)
+
+# Pauta
+
+
+Responde las preguntas correctamente. -- (1.5 punto). 
+Explica y aplica correctamente el método comparado con base en la bibliografia. -- (1.5 punto). 
+Interpreta correctamente los resultados del QCA (incliuyendo ideas sobre causalidad). --(1.5 punto). 
+Desarrolla las ideas arriba de modo crítico y original. -- (1.5 punto)
