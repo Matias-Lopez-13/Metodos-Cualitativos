@@ -1,0 +1,491 @@
+---
+title: "Ejercicio: selección de casos"
+subtitle: "Regresión, Nested Analysis y primera exploración cualitativa"
+author: "Métodos Cualitativos"
+
+format:
+  pdf:
+    pdf-engine: xelatex
+    toc: false
+    number-sections: true
+
+editor: visual
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+library(tidyverse)
+library(ggrepel)
+
+# Lucio Costa palette
+sky       <- "#6FA9C4"
+sky_dark  <- "#397D9D"
+brick     <- "#A95A45"
+ochre     <- "#D39A2C"
+charcoal  <- "#292929"
+softgrey  <- "#777777"
+```
+
+# Objetivo
+
+Vamos a hacer seleccionar casos en base a un modelo predictivo sencillo. La lógica sigue la estrategia de **Nested Analysis**: utilizar un análisis $N$-grande para identificar casos que luego pueden ser estudiados con mayor profundidad.
+
+EL jercício consiste en:
+
+1. estimar e interpretar una regresión lineal simple;
+2. distinguir entre valores observados, valores predichos y residuos;
+3. decir algo sobre desigualdad y democracia;
+4. seleccionar un caso a partir del modelo;
+5. realizar una primera exploración cualitativa del caso  (siempre indiquen fuente de la información).
+
+# Nuestro ejemplo previo: desarrollo económico y democracia
+
+Trabajaremos con datos de **V-Dem** para alrededor del año 2010. Cada observación corresponde a un país.
+
+El siguiente código carga los datos:
+
+```{r}
+#| label: datos
+
+vdem_2010 <- read_csv(
+  "https://raw.githubusercontent.com/Matias-Lopez-13/Metodos-Cualitativos/main/data/vdem_2010_gini.csv",
+  show_col_types = FALSE
+) %>%
+  mutate(
+    log_gdppc = log(e_gdppc)
+  )
+```
+
+Las principales variables son:
+
+- `country_name`: país;
+- `v2x_polyarchy`: índice de democracia electoral de V-Dem;
+- `e_gdppc`: PIB per cápita;
+- `log_gdppc`: logaritmo del PIB per cápita;
+- `gini`: coeficiente de Gini del Banco Mundial;
+- `gini_year`: año de la observación del coeficiente de Gini utilizada.
+
+El coeficiente de Gini varía aproximadamente entre 0 y 100. Valores más altos indican **mayor desigualdad de ingresos**.
+
+## Un modelo predictivo
+
+Primero examinaremos la relación entre desarrollo económico y democracia:
+
+$$
+Democracia_i = \alpha + \beta PIB_i + \varepsilon_i
+$$
+
+```{r}
+#| label: modelo-pib
+
+datos_pib <- vdem_2010 %>%
+  filter(
+    !is.na(v2x_polyarchy),
+    !is.na(log_gdppc)
+  )
+
+modelo_pib <- lm(
+  v2x_polyarchy ~ log_gdppc,
+  data = datos_pib
+)
+
+summary(modelo_pib)
+```
+
+Ahora calculamos, para cada país, el valor de democracia que predice el modelo y su residuo:
+
+$$
+e_i = Y_i - \hat{Y}_i
+$$
+
+```{r}
+#| label: predicciones-pib
+
+datos_pib <- datos_pib %>%
+  mutate(
+    predicted_pib = predict(modelo_pib),
+    residual_pib = v2x_polyarchy - predicted_pib,
+    abs_residual_pib = abs(residual_pib)
+  )
+```
+
+## Visualiza la relación
+
+```{r}
+#| label: figura-pib
+#| echo: false
+#| fig-width: 9
+#| fig-height: 6
+
+ggplot(
+  datos_pib,
+  aes(
+    x = log_gdppc,
+    y = v2x_polyarchy
+  )
+) +
+
+  geom_smooth(
+    method = "lm",
+    se = FALSE,
+    color = sky_dark,
+    linewidth = 1
+  ) + # <-- note que aquí está la línea de tendencia producida por un modelo OLS
+
+  geom_segment(
+    aes(
+      xend = log_gdppc,
+      yend = predicted_pib
+    ),
+    color = sky,
+    alpha = 0.55,
+    linewidth = 0.5
+  ) +
+
+  geom_point(
+    color = ochre,
+    size = 2.4,
+    alpha = 0.8
+  ) +
+
+  labs(
+    x = "PIB per cápita (log)",
+    y = "Democracia electoral (V-Dem)",
+    caption = "Las líneas verticales representan los residuos del modelo."
+  ) +
+
+  theme_minimal(base_size = 13) +
+
+  theme(
+    panel.grid.minor = element_blank(),
+    plot.caption = element_text(color = softgrey)
+  )
+```
+
+Un país cercano a la línea tiene un **residuo pequeño**: el modelo predice relativamente bien su nivel de democracia.
+
+Un país alejado de la línea tiene un **residuo grande**: presenta más o menos democracia de la que esperaríamos de acuerdo con el modelo.
+
+# Nuevo analisis: Desigualdad y democracia
+
+Muchos estudios han llamado la atención para el efecto de la distribución de la riqueza, no solo la cantidad de riqueza.
+
+Por ejemplo, Acemoglu y Robinson sostienen que la desigualdad económica genera conflicto distributivo entre las élites y la mayoría de la población. Cuando la desigualdad es alta, la mayoría tiene mayores incentivos para demandar redistribución, mientras que las élites tienen mayores incentivos para resistir la democracia porque temen perder riqueza mediante impuestos y políticas redistributivas. La democracia surge cuando la presión de las masas es suficientemente fuerte y las élites prefieren conceder derechos políticos antes que enfrentar el costo de una revolución o de una represión permanente.
+
+**Acemoglu, D., & Robinson, J. A. (2000). Why did the West extend the franchise? Democracy, inequality, and growth in historical perspective. The quarterly journal of economics, 115(4), 1167-1199.**
+
+
+
+Queremos explorar la siguiente pregunta:
+
+> **¿Debiéramos asumir que la desigualdad económica afecta la democracia?**
+
+Agregamos `gini` como predictor (variable independiente) de `v2x_polyarchy` (democracia).
+
+Igual, seguimos incluyendo el nivel de desarrollo económico (`log_gdppc`).
+
+## El modelo predictivo
+
+$$
+Democracia_i =
+\alpha +
+\beta_1 Desigualdad_i +
+\beta_2 Desigualdad_i^2 +
+\beta_3 PIB_i +
+\varepsilon_i
+$$
+
+Aquí la base utilizada por el modelo:
+
+```{r}
+#| label: modelo-desigualdad
+
+datos_desigualdad <- vdem_2010 %>%
+  filter(
+    !is.na(v2x_polyarchy),
+    !is.na(gini),
+    !is.na(log_gdppc)
+  )
+
+modelo_desigualdad <- lm(
+  v2x_polyarchy ~ gini + I(gini^2) + log_gdppc,
+  data = datos_desigualdad
+)
+
+summary(modelo_desigualdad)
+```
+
+¿Cuál es la relación entre desigualdad y democracia?
+¿Podemos interpretar esta asociación directamente como un efecto causal? ¿Por qué?
+
+# Predicciones y residuos
+
+Aquí se calcula el valor predicho y el residuo para cada país.
+
+Residuo:
+
+$$
+Residual_i = Y_i - \hat{Y}_i
+$$
+
+```{r}
+#| label: residuos-desigualdad
+
+datos_desigualdad <- datos_desigualdad %>%
+  mutate(
+    predicted_gini = predict(modelo_desigualdad),
+    residual_gini = v2x_polyarchy - predicted_gini,
+    abs_residual_gini = abs(residual_gini)
+  )
+```
+
+
+Como ahora el modelo incluye PIB per cápita como control, para representar la relación entre desigualdad y democracia mantenemos el PIB per cápita constante en su promedio.
+
+```{r}
+#| label: figura-desigualdad
+#| fig-width: 9
+#| fig-height: 6
+
+linea_predicha <- tibble(
+  gini = seq(
+    min(datos_desigualdad$gini),
+    max(datos_desigualdad$gini),
+    length.out = 200
+  ),
+  log_gdppc = mean(datos_desigualdad$log_gdppc)
+) %>%
+  mutate(
+    democracia_predicha = predict(
+      modelo_desigualdad,
+      newdata = .
+    )
+  )
+
+ggplot(
+  datos_desigualdad,
+  aes(x = gini, y = v2x_polyarchy)
+) +
+  geom_line(
+    data = linea_predicha,
+    aes(
+      x = gini,
+      y = democracia_predicha
+    ),
+    color = sky_dark,
+    linewidth = 1,
+    inherit.aes = FALSE
+  ) +
+  geom_point(
+    color = ochre,
+    size = 2.4,
+    alpha = 0.8
+  ) +
+  labs(
+    x = "Desigualdad (Gini)",
+    y = "Democracia electoral (V-Dem)",
+    caption = "Predicción del modelo manteniendo el PIB per cápita en su promedio."
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    panel.grid.minor = element_blank(),
+    plot.caption = element_text(color = softgrey)
+  )
+```
+
+# Selección de un caso: Lieberman
+
+Ahora utilizarán el análisis de $N$-grande para seleccionar un caso para estudiar cualitativamente.
+
+
+## Casos on-the-line
+
+Qué nos dices estos casos?
+
+```{r}
+#| label: figura-on-the-line
+#| fig-width: 9
+#| fig-height: 6
+
+# Identificar los 10 países mejor predichos por el modelo
+top10_linea <- datos_desigualdad %>%
+  mutate(
+    abs_residual_gini = abs(residual_gini)
+  ) %>%
+  arrange(abs_residual_gini) %>%
+  slice_head(n = 10)
+
+ggplot(
+  datos_desigualdad,
+  aes(x = predicted_gini, y = v2x_polyarchy)
+) +
+  
+  # Línea de predicción perfecta
+  geom_abline(
+    intercept = 0,
+    slope = 1,
+    color = sky_dark,
+    linewidth = 1
+  ) +
+  
+  # Todos los países
+  geom_point(
+    color = softgrey,
+    size = 2.2,
+    alpha = 0.5
+  ) +
+  
+  # Destacar países cercanos a la predicción
+  geom_point(
+    data = top10_linea,
+    color = ochre,
+    size = 3
+  ) +
+  
+  # Etiquetas
+  geom_text_repel(
+    data = top10_linea,
+    aes(label = country_name),
+    color = charcoal,
+    size = 3.5,
+    max.overlaps = Inf,
+    seed = 123
+  ) +
+  
+  labs(
+    x = "Democracia predicha por el modelo",
+    y = "Democracia observada (V-Dem)",
+    caption = "Se identifican los 10 países con residuos absolutos más pequeños."
+  ) +
+  
+  theme_minimal(base_size = 13) +
+  theme(
+    panel.grid.minor = element_blank(),
+    plot.caption = element_text(color = softgrey)
+  )
+```
+
+## Caso off-the-line
+
+
+Qué nos dices estos casos?
+
+Volvamos a pensar en resíduos.
+
+$$
+Residual_i = Democracia\ observada_i - Democracia\ predicha_i
+$$
+
+
+Una lista interesante de 10 casos:
+
+```{r}
+#| label: candidatos
+
+datos_desigualdad %>%
+  arrange(residual_gini) %>%
+  select(
+    country_name,
+    gini,
+    gini_year,
+    log_gdppc,
+    v2x_polyarchy,
+    predicted_gini,
+    residual_gini
+  ) %>%
+  slice_head(n = 15)
+```
+
+```{r}
+#| label: figura-residuos-negativos
+#| fig-width: 9
+#| fig-height: 6
+
+# Identificar los 10 residuos más negativos
+top10_negativos <- datos_desigualdad %>%
+  arrange(residual_gini) %>%
+  slice_head(n = 10)
+
+ggplot(
+  datos_desigualdad,
+  aes(x = predicted_gini, y = v2x_polyarchy)
+) +
+
+  # Línea de predicción perfecta
+  geom_abline(
+    intercept = 0,
+    slope = 1,
+    color = sky_dark,
+    linewidth = 1
+  ) +
+
+  # Todos los países
+  geom_point(
+    color = softgrey,
+    size = 2.2,
+    alpha = 0.5
+  ) +
+
+  # Residuos de los 10 casos seleccionados
+  geom_segment(
+    data = top10_negativos,
+    aes(
+      x = predicted_gini,
+      xend = predicted_gini,
+      y = v2x_polyarchy,
+      yend = predicted_gini
+    ),
+    color = brick,
+    linewidth = 0.8
+  ) +
+
+  # Destacar los 10 casos
+  geom_point(
+    data = top10_negativos,
+    color = brick,
+    size = 3
+  ) +
+
+  # Nombres de los países
+  geom_text_repel(
+    data = top10_negativos,
+    aes(label = country_name),
+    color = charcoal,
+    size = 3.5,
+    max.overlaps = Inf,
+    seed = 123
+  ) +
+
+  labs(
+    x = "Democracia predicha por el modelo",
+    y = "Democracia observada (V-Dem)",
+    caption = "En rojo: los 10 países con los residuos negativos más grandes."
+  ) +
+
+  theme_minimal(base_size = 13) +
+  theme(
+    panel.grid.minor = element_blank(),
+    plot.caption = element_text(color = softgrey)
+  )
+```
+
+Seleccionen un país con un residuo negativo grande.
+
+Generemos hipótesis:
+
+> **¿Por qué este país tiene menos democracia de la que esperaríamos dado su nivel de desigualdad y desarrollo económico?**
+
+
+Luego seleccionen un caso
+
+### Estudio de caso
+
+Expliquen por qué este caso es informativo para estudiar la relación entre desigualdad y democracia.
+
+**¿Qué está ocurriendo dentro del caso?**
+
+Busquen evidencia que pueda ayudar a explicar específicamente porque no se comporta como predice el modelo.
+
+Utilicen **fuentes confiables**.
