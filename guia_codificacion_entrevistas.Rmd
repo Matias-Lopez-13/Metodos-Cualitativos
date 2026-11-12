@@ -1,0 +1,365 @@
+---
+title: "Para crear una planilla de codificación de entrevistas con R y Excel"
+lang: es
+output:
+  pdf_document:
+    latex_engine: xelatex
+    highlight: tango
+    number_sections: false
+geometry: margin=2.3cm
+fontsize: 10pt
+header-includes:
+  - \usepackage{fvextra}
+  - \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,breakanywhere,commandchars=\\\{\}}
+---
+
+## 1. Preparar el archivo
+
+1. Guarda la transcripción como archivo de texto plano (`.txt`) con codificación UTF-8.
+2. Nómbralo `entrevista_01.txt`.
+3. Colócalo en la carpeta de tu proyecto de R.
+
+## 2. Instalar y cargar paquetes
+
+Ejecuta una sola vez:
+
+```{r, eval=FALSE}
+install.packages(c("tokenizers", "openxlsx", "readxl", "dplyr", "tidyr"))
+```
+
+En cada sesión, carga los paquetes:
+
+```{r, eval=FALSE}
+library(tokenizers)
+library(openxlsx)
+library(readxl)
+library(dplyr)
+library(tidyr)
+```
+
+## 3. Importar la transcripción
+
+```{r, eval=FALSE}
+transcripcion <- paste(
+  readLines("direccion de entrevista_01.txt aqui", encoding = "UTF-8", warn = FALSE),
+  collapse = " "
+)
+
+cat(transcripcion)
+```
+
+## 4. Dividir el texto en oraciones
+
+```{r, eval=FALSE}
+oraciones <- tokenize_sentences(transcripcion, simplify = TRUE)
+
+head(oraciones, 5)
+length(oraciones)
+```
+
+## 5. Agrupar tres oraciones por segmento
+
+```{r, eval=FALSE}
+grupos <- split(oraciones, ceiling(seq_along(oraciones) / 3))
+
+length(grupos)
+```
+
+Para cambiar la cantidad de oraciones por segmento, sustituye `3` por otro número.
+
+## 6. Crear la tabla de codificación
+
+```{r, eval=FALSE}
+codificacion <- data.frame(
+  entrevista = "entrevista_01",
+  segmento = seq_along(grupos),
+  texto = vapply(grupos, paste, collapse = " ", FUN.VALUE = character(1)),
+  codigo_1 = NA_character_,
+  codigo_2 = NA_character_,
+  codigo_3 = NA_character_,
+  memo = NA_character_
+)
+
+head(codificacion)
+```
+
+## 7. Crear y dar formato al Excel
+
+```{r, eval=FALSE}
+wb <- createWorkbook()
+addWorksheet(wb, "Codificacion")
+writeData(wb, "Codificacion", codificacion)
+
+setColWidths(
+  wb, "Codificacion",
+  cols = 1:7,
+  widths = c(17, 12, 85, 24, 24, 24, 45)
+)
+
+estilo_encabezado <- createStyle(
+  fgFill = "#397D9D",
+  fontColour = "#FFFFFF",
+  textDecoration = "bold"
+)
+
+addStyle(
+  wb, "Codificacion", estilo_encabezado,
+  rows = 1, cols = 1:7, gridExpand = TRUE
+)
+
+estilo_texto <- createStyle(valign = "top", wrapText = TRUE)
+
+addStyle(
+  wb, "Codificacion", estilo_texto,
+  rows = 2:(nrow(codificacion) + 1),
+  cols = 1:7, gridExpand = TRUE
+)
+
+freezePane(wb, "Codificacion", firstRow = TRUE)
+addFilter(wb, "Codificacion", row = 1, cols = 1:7)
+
+saveWorkbook(
+  wb, "entrevista_01_codificacion.xlsx",
+  overwrite = TRUE
+)
+```
+
+## 8. Codificar en Excel
+
+1. Abre `entrevista_01_codificacion.xlsx`.
+2. Lee el texto de cada fila.
+3. Escribe las etiquetas temáticas en `codigo_1`, `codigo_2` y `codigo_3`.
+4. Escribe observaciones en `memo` cuando sea necesario.
+5. Guarda el archivo.
+
+## 9. Importar la planilla codificada a R
+
+```{r, eval=FALSE}
+datos_codificados <- read_excel("entrevista_01_codificacion.xlsx")
+
+View(datos_codificados)
+```
+
+## 10. Contar códigos y recuperar fragmentos
+
+Convierte las columnas de códigos a formato largo:
+
+```{r, eval=FALSE}
+codigos_largos <- datos_codificados %>%
+  pivot_longer(
+    cols = starts_with("codigo_"),
+    names_to = "columna",
+    values_to = "codigo"
+  ) %>%
+  filter(!is.na(codigo), codigo != "")
+```
+
+Cuenta los segmentos asociados a cada código:
+
+```{r, eval=FALSE}
+frecuencias <- codigos_largos %>%
+  distinct(entrevista, segmento, codigo) %>%
+  count(codigo, sort = TRUE)
+
+print(frecuencias)
+```
+
+Recupera los fragmentos con un código específico:
+
+```{r, eval=FALSE}
+codigos_largos %>%
+  filter(codigo == "resistencia_impuestos") %>%
+  select(entrevista, segmento, texto, memo)
+  
+```
+
+# Analisis
+
+```{r, eval=FALSE}
+############################################################
+# ANÁLISIS TEMÁTICO DE ENTREVISTAS
+# PARTE I: PREPARACIÓN DEL ARCHIVO EXCEL
+############################################################
+
+# Instalar paquetes (solo una vez)
+install.packages(c(
+  "tokenizers", "openxlsx", "readxl",
+  "dplyr", "tidyr", "ggplot2"
+))
+
+# Cargar paquetes
+library(tokenizers)
+library(openxlsx)
+library(readxl)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+
+############################################################
+# 1. IMPORTAR LA TRANSCRIPCIÓN
+############################################################
+
+# Dirección del archivo de entrevista (.txt)
+ruta_entrevista <- "direccion del archivo aqui"
+
+# Carpeta donde se guardarán los resultados
+carpeta_resultados <- "direccion del archivo aqui"
+
+# Identificador de la entrevista
+id_entrevista <- "entrevista_01"
+
+# Importar transcripción
+transcripcion <- paste(
+  readLines(
+    ruta_entrevista,
+    encoding = "UTF-8",
+    warn = FALSE
+  ),
+  collapse = " "
+)
+
+
+############################################################
+# 2. DIVIDIR LA ENTREVISTA EN ORACIONES
+############################################################
+
+oraciones <- tokenize_sentences(
+  transcripcion,
+  simplify = TRUE
+)
+
+# Revisar las primeras oraciones
+head(oraciones, 5)
+
+# Número total de oraciones
+length(oraciones)
+
+
+############################################################
+# 3. AGRUPAR ORACIONES EN SEGMENTOS
+############################################################
+
+# Cada segmento contiene tres oraciones
+grupos <- split(
+  oraciones,
+  ceiling(seq_along(oraciones) / 3)
+)
+
+# Número de segmentos
+length(grupos)
+
+
+############################################################
+# 4. CREAR TABLA PARA CODIFICACIÓN
+############################################################
+
+codificacion <- data.frame(
+  entrevista = id_entrevista,
+  segmento = seq_along(grupos),
+  texto = vapply(
+    grupos,
+    paste,
+    collapse = " ",
+    FUN.VALUE = character(1)
+  ),
+  codigo_1 = NA_integer_,
+  codigo_2 = NA_integer_,
+  codigo_3 = NA_integer_,
+  memo = NA_character_
+)
+
+head(codificacion)
+
+
+############################################################
+# 5. EXPORTAR A EXCEL
+############################################################
+
+libro <- createWorkbook()
+
+addWorksheet(libro, "Codificacion")
+
+writeData(
+  libro,
+  "Codificacion",
+  codificacion
+)
+
+# Ajustar ancho de columnas
+setColWidths(
+  libro,
+  "Codificacion",
+  cols = 1:7,
+  widths = c(17, 12, 85, 24, 24, 24, 45)
+)
+
+# Formato del encabezado
+estilo_encabezado <- createStyle(
+  fgFill = "#397D9D",
+  fontColour = "#FFFFFF",
+  textDecoration = "bold"
+)
+
+addStyle(
+  libro,
+  "Codificacion",
+  estilo_encabezado,
+  rows = 1,
+  cols = 1:7,
+  gridExpand = TRUE
+)
+
+# Ajustar texto en las celdas
+estilo_texto <- createStyle(
+  valign = "top",
+  wrapText = TRUE
+)
+
+addStyle(
+  libro,
+  "Codificacion",
+  estilo_texto,
+  rows = 2:(nrow(codificacion) + 1),
+  cols = 1:7,
+  gridExpand = TRUE
+)
+
+# Fijar encabezado
+freezePane(
+  libro,
+  "Codificacion",
+  firstRow = TRUE
+)
+
+# Agregar filtros
+addFilter(
+  libro,
+  "Codificacion",
+  row = 1,
+  cols = 1:7
+)
+
+# Guardar archivo
+archivo_excel <- file.path(
+  carpeta_resultados,
+  paste0(id_entrevista, "_codificacion.xlsx")
+)
+
+# Evitar sobrescribir una codificación existente
+if (file.exists(archivo_excel)) {
+  stop(
+    "El archivo Excel ya existe. ",
+    "Cambie el nombre o la carpeta para no perder ",
+    "la codificación realizada."
+  )
+}
+
+saveWorkbook(
+  libro,
+  archivo_excel,
+  overwrite = FALSE
+)
+
+message("Archivo generado: ", archivo_excel)
+```
